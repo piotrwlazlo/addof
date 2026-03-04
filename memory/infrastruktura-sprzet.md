@@ -125,10 +125,12 @@
 
 | Komponent | MAIN | DR |
 |-----------|------|----|
-| Serwery Fine-Tuning | 2x XE9680 (16 GPU SXM) | 1x XE7745 (8 GPU NVL) |
-| Serwery Inference | 2x XE7745 (8 GPU NVL) | 1x XE7745 (8 GPU NVL) |
-| Serwery CPU | 3 | 3 |
-| PowerScale | 3x F710 (76TB) | 3x F210 (62TB) |
-| PowerStore | istniejący + 2x100G NIC | istniejący + 2x100G NIC |
+| Serwery Fine-Tuning (C1/C4) | 2x XE9680 (16 GPU SXM) | 1x XE7745 (8 GPU NVL) |
+| Serwery Inference+Test (C2+C3/C5) | 2x XE7745 (12+4 GPU NVL) | 1x XE7745 (8 GPU NVL) |
+| Serwery CPU (Harvester) | 3x R570 | 3x R570 |
+| Klastry RKE2 (fizyczne) | 1 | 1 |
+| Klastry logiczne | C1, C2, C3 | C4, C5 |
+| PowerScale | 3x F710 (~117TB raw) | 3x F210 (~93TB raw) |
+| PowerStore | istniejący (wystarczająca pojemność) + 2x100G NIC | istniejący + 2x100G NIC |
 | Switche | 5 (1x400G + 4x100G) | 2 (100G consolidated) |
 | GPU łącznie | 32x H200 | 16x H200 |

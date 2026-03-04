@@ -113,7 +113,7 @@ OICM jest częścią ekosystemu SUSE AI:
 1. **OICM ma własny RBAC + Keycloak** - trzeba wyjaśnić integrację z Rancher RBAC i AD klienta
 2. **LoRA fine-tuning** jest wprost wspierany - to standard dla enterprise LLM customization
 3. **CNI** - OICM i SUSE dogadają się i wspólnie wybiorą konkretny CNI (decyzja 2026-02-24)
-4. **Shared vs Dedicated cluster** - w tym projekcie prawdopodobnie shared (5 klastrów, multi-tenant)
+4. **Shared cluster z logiczną izolacją** - 2 fizyczne klastry RKE2, 5 logicznych podziałów (namespace'y + OICM quotas)
 5. **Model versioning + dataset versioning** - jest wbudowane, nie trzeba zewnętrznego MLflow
 6. **REST API + SDK** - klient może programatycznie zarządzać platformą
 7. **~~Gen AI Studio jest OPCJONALNY~~** → **Gen AI Studio WYŁĄCZONE z scope** (decyzja 2026-02-24)

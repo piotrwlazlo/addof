@@ -19,11 +19,12 @@ Ja: Zaufany architekt systemów / ekspert techniczny
 - [Slownik pojec](slownik.md) - Kluczowe terminy i skróty
 
 ## Kluczowe Fakty
-- 2 data center: Production (MAIN) + Disaster Recovery (DR)
-- 6 serwerów CPU (wirtualizacja) + 5 serwerów GPU (AI workloads)
-- SUSE stack: Virtualization (Harvester) + Rancher Prime + RKE2 + Storage (Longhorn)
+- 2 data center: Production (MAIN) + Disaster Recovery (DR), **connected** (nie air-gapped)
+- 6x R570 (Harvester) + 2x XE9680 + 4x XE7745 (GPU) = 48 GPU H200
+- **2 fizyczne klastry RKE2**, 5 logicznych (C1-C5 via namespace'y + OICM)
+- SUSE stack: Harvester + Rancher Prime + RKE2 + Longhorn
 - Dell stack: PowerScale (NAS) + PowerStore (block) + PowerSwitch (SONIC)
 - GPU: NVIDIA H200 (SXM na XE9680, NVL PCIe na XE7745)
-- Backup: CloudCasa by Catalogic + etcd snapshots + SyncIQ
-- AI: Open Innovation Platform (OICM) - multi-tenant, multi-cluster
-- Dokumentacja: Antora 3.1.9 + AsciiDoc, wersje Harvester v1.3-v1.7, Rancher v2.8-v2.13
+- Backup: CloudCasa + etcd snapshots + SyncIQ
+- AI: OICM v1.11.0 - multi-tenant, BEZ GenAI Studio
+- **⚠️ Harvester + PowerScale CSI = nie wspierane** — wymaga workaround

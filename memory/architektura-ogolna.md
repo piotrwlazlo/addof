@@ -23,13 +23,14 @@ Dostarczenie klientowi w pełni funkcjonalnej platformy AI on-premises, składaj
 │  │  25 GbE  │ │   400 GbE    │ │   100 GbE   │ │  100 GbE   │  │
 │  └──────────┘ └──────────────┘ └─────────────┘ └────────────┘  │
 │                                                                  │
-│  COMPUTE:                                                        │
+│  COMPUTE (1 fizyczny klaster RKE2, 3 logiczne podziały):        │
 │  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐   │
-│  │  Fine-Tuning     │ │   Inference     │ │   TEST / DEV    │   │
-│  │  2x XE9680       │ │   2x XE7745     │ │   (dev nodes)   │   │
-│  │  H200 SXM (8GPU) │ │   H200 NVL(8GPU)│ │                 │   │
-│  │  400GbE backend  │ │   100GbE backend│ │                 │   │
+│  │  C1 Fine-Tuning  │ │ C2 Inference    │ │  C3 TEST / DEV  │   │
+│  │  2x XE9680       │ │ 12 GPU XE7745   │ │  4 GPU XE7745   │   │
+│  │  16x H200 SXM    │ │ (1.5 serwera)   │ │  (0.5 serwera)  │   │
+│  │  400GbE backend  │ │ 100GbE backend  │ │  100GbE backend │   │
 │  └─────────────────┘ └─────────────────┘ └─────────────────┘   │
+│  Izolacja logiczna: namespace'y + OICM scheduling/quotas        │
 │                                                                  │
 │  CONTROL PLANE:  3 VM (RKE2 master etcd/controlplane + worker)  │
 │                  8 core CPU, 64GB RAM, 150GB SSD per VM         │
@@ -55,12 +56,13 @@ Dostarczenie klientowi w pełni funkcjonalnej platformy AI on-premises, składaj
 │  │  25 GbE  │ │  (tuning + inference + storage w jednym)   │    │
 │  └──────────┘ └────────────────────────────────────────────┘    │
 │                                                                  │
-│  COMPUTE:                                                        │
+│  COMPUTE (1 fizyczny klaster RKE2, 2 logiczne podziały):        │
 │  ┌─────────────────┐ ┌─────────────────┐                        │
-│  │  DR Fine-Tuning  │ │  DR Inference   │                        │
+│  │ C4 DR Fine-Tune  │ │ C5 DR Inference │                        │
 │  │  1x XE7745       │ │  1x XE7745      │                        │
-│  │  H200 NVL (8GPU) │ │  H200 NVL(8GPU) │                        │
+│  │  8x H200 NVL     │ │  8x H200 NVL    │                        │
 │  └─────────────────┘ └─────────────────┘                        │
+│  Izolacja logiczna: namespace'y + OICM scheduling/quotas        │
 │                                                                  │
 │  CONTROL PLANE:  3 VM (jak MAIN)                                │
 │                                                                  │
@@ -89,10 +91,13 @@ Dostarczenie klientowi w pełni funkcjonalnej platformy AI on-premises, składaj
 
 1. **Separacja fabric'ów sieciowych na MAIN** - osobne sieci dla tuning (400G), inference (100G), storage (100G), frontend (25G) = maksymalna wydajność
 2. **Konsolidacja fabric'ów na DR** - jeden fabric 100GbE = oszczędność kosztów przy zachowaniu funkcjonalności
-3. **Różne serwery wg roli** - XE9680 (16 GPU SXM, potężniejsze) do fine-tuningu, XE7745 (8 GPU NVL PCIe) do inference
+3. **Różne serwery wg roli** - XE9680 (8 GPU SXM per serwer) do fine-tuningu, XE7745 (8 GPU NVL PCIe) do inference
 4. **DR na XE7745 dla obu ról** - oszczędność, DR nie musi mieć pełnej mocy MAIN
-5. **Identyczny storage na obu site'ach** - PowerScale + PowerStore = łatwa replikacja i failover
-6. **GitOps/CI-CD** - jeden Git repo synchronizuje konfigurację na oba site'y
+5. **2 fizyczne klastry RKE2, 5 logicznych** - izolacja via namespace'y i OICM (nie oddzielne klastry)
+6. **Logiczny podział GPU na MAIN** - C2 (inference) dostaje 12 GPU, C3 (test/dev) 4 GPU z 2 serwerów XE7745
+7. **Identyczny storage na obu site'ach** - PowerScale + PowerStore = łatwa replikacja i failover
+8. **GitOps/CI-CD** - jeden Git repo synchronizuje konfigurację na oba site'y
+9. **Środowisko connected** (nie air-gapped) - decyzja 2026-03-04
 
 ## Partnerzy i Dostawcy
 

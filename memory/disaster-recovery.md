@@ -44,7 +44,7 @@ Specjalna integracja: **CloudCasa DR for Storage** - replikacja na poziomie stor
 
 ### 4. GitOps / CI-CD
 - Centralny **Git Repository** + CI/CD Pipeline
-- Łączy klastry MAIN (C1, C2, C3) i DR (C4, C5)
+- Łączy 2 fizyczne klastry RKE2 (MAIN i DR) z logicznymi podziałami (C1-C5)
 - Identyczne deploymenty i konfiguracje na obu site'ach
 - Fleet (Rancher) jako mechanizm synchronizacji
 
@@ -100,6 +100,7 @@ Specjalna integracja: **CloudCasa DR for Storage** - replikacja na poziomie stor
 | **RTO** (Recovery Time Objective) | Jak szybko odtworzyć? | np. 15min, 1h, 4h |
 
 RPO i RTO definiowane per grupa workloadów - nie ma jednego RPO/RTO dla całej platformy.
+> **Status (2026-03-04):** RPO/RTO ustali inżynier CloudCasa na spotkaniu z klientem.
 
 ## Ważne dla Tech Leada
 1. **DR ≠ Backup** - DR to cały workflow failover, nie tylko kopie danych

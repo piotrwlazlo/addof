@@ -6,26 +6,35 @@ RKE2 (Rancher Kubernetes Engine 2) to dystrybucja Kubernetes od SUSE, zoptymaliz
 ## Rola w projekcie
 Klastry RKE2 downstream to WŁAŚCIWE środowisko uruchomieniowe dla workloadów AI. To na nich działają kontenery z modelami AI, training joby, inference servery itd.
 
-## Topologia klastrów
+## Topologia klastrów (zaktualizowana 2026-03-04)
 
-### MAIN Site
-| Klaster | Rola | Serwer | GPU |
-|---------|------|--------|-----|
-| **C1** | Fine-Tuning | XE9680 #1 | 8x H200 SXM |
-| **C2** | Fine-Tuning | XE9680 #2 | 8x H200 SXM |
-| **C3** | Inference/RAG | 2x XE7745 | 16x H200 NVL |
+### Model: 2 klastry fizyczne, 5 klastrów logicznych
+Zamiast 5 oddzielnych klastrów RKE2, projekt stosuje **2 fizyczne klastry RKE2** (1 MAIN + 1 DR) z **logiczną izolacją** (namespace'y, OICM multi-tenancy) wewnątrz każdego klastra.
 
-### DR Site
-| Klaster | Rola | Serwer | GPU |
-|---------|------|--------|-----|
-| **C4** | DR Fine-Tuning | XE7745 #1 | 8x H200 NVL |
-| **C5** | DR Inference | XE7745 #2 | 8x H200 NVL |
+### MAIN Site — 1 fizyczny klaster RKE2
+| Klaster logiczny | Rola | Serwery | GPU |
+|------------------|------|---------|-----|
+| **C1** | Fine-Tuning | 2x XE9680 | 16x H200 SXM |
+| **C2** | Inference/RAG | 1.5x XE7745 (12 GPU) | 12x H200 NVL |
+| **C3** | Test/Dev | 0.5x XE7745 (4 GPU) | 4x H200 NVL |
 
-**Łącznie: 5 klastrów RKE2 na bare-metal GPU nodes**
+- Fizycznie: 2x XE9680 + 2x XE7745 = **32 GPU SXM + 16 GPU NVL**
+- C2 i C3 współdzielą 2 serwery XE7745 (12+4 GPU, podział logiczny via OICM scheduling)
 
-### Architektura każdego klastra
+### DR Site — 1 fizyczny klaster RKE2
+| Klaster logiczny | Rola | Serwery | GPU |
+|------------------|------|---------|-----|
+| **C4** | DR Fine-Tuning | 1x XE7745 | 8x H200 NVL |
+| **C5** | DR Inference | 1x XE7745 | 8x H200 NVL |
+
+- Fizycznie: 2x XE7745 = **16 GPU NVL**
+
+**Łącznie: 2 fizyczne klastry RKE2, 5 logicznych podziałów (namespace'y)**
+
+### Architektura klastra fizycznego
 - Master nodes (etcd + controlplane) → działają jako VM na Harvester
 - Worker nodes → bare-metal serwery GPU
+- Izolacja logiczna → namespace'y + OICM resource management/quotas
 - Najnowsza wersja Kubernetes
 
 ### OS na GPU Worker Nodes (decyzja 2026-02-24)
@@ -75,12 +84,12 @@ Zaawansowane technologie sieciowe dla GPU workloadów:
 | Network Policies | Izolacja sieciowa między tenantami |
 
 ## Ważne dla Tech Leada
-1. **5 klastrów** to serce platformy AI - tu działają wszystkie workloady
+1. **2 fizyczne klastry RKE2** (MAIN+DR) z 5 logicznymi podziałami - to serce platformy AI
 2. **GPU Operator** jest KRYTYCZNY - bez niego pody nie widzą GPU
 3. **GPU Operator NIE wspiera SUSE OS** - worker nodes muszą być Ubuntu lub RHEL (decyzja zależy od licencji klienta)
 4. **SR-IOV + RDMA** dają 10-100x lepszą wydajność sieci dla GPU - ważne dla distributed training
 5. **Master nodes na VM** (Harvester), worker nodes na **bare-metal** - typowa architektura dla GPU
 6. **Dell CSI** = persistent storage dla AI data (modele, datasety, checkpointy)
-7. **Każdy klaster** jest zarządzany przez Rancher, ale operacyjnie niezależny
+7. **Oba klastry fizyczne** zarządzane przez Rancher, logiczna izolacja via namespace'y i OICM
 8. **RKE2** jest FIPS-compliant out-of-the-box - ważne dla enterprise klientów
 9. **CNI** - OICM i SUSE wspólnie wybiorą konkretny CNI (w trakcie ustaleń)

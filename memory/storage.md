@@ -114,11 +114,29 @@ CSI driver od Dell zainstalowany na klastrach RKE2 umożliwia Kubernetes automat
 - Integracja z CloudCasa dla pełnego DR workflow
 - Docs: https://dell.github.io/csm-docs/
 
+## ⚠️ Znane ograniczenia kompatybilności (2026-03-04)
+
+### Harvester + PowerScale CSI = NIE WSPIERANE
+Zgodnie z [Dell CSM Support Matrix](https://dell.github.io/csm-docs/docs/supportmatrix/#container-orchestrator-platforms):
+- **PowerScale CSI na Harvester** → **NIE wspierane** (Harvester 1.5, 1.6)
+- **PowerStore CSI na Harvester** → **wspierane** (Harvester 1.5, 1.6)
+- Na Harvester **nie działają** moduły CSM: Resiliency, Replication, Observability, Authorization
+
+**Konsekwencje:**
+- VM na Harvester nie mogą bezpośrednio montować wolumenów PowerScale via CSI
+- Wymaga alternatywnego rozwiązania (np. NFS mount bezpośrednio, dedykowany NFS client w VM)
+- **Do rozwiązania** — wymaga dyskusji z Dell i SUSE
+
+### PowerStore na Harvester
+- PowerStore CSI **działa** na Harvester — block storage dla VM jest OK
+- Ale brak modułów CSM (no Replication, no Resiliency na Harvester)
+
 ## Ważne dla Tech Leada
 1. **Nie mylić 3 warstw storage!** Longhorn ≠ PowerScale ≠ PowerStore
 2. **PowerScale** = duże pliki AI (datasety, modele) → NAS/file access
-3. **PowerStore** = Vector DB + dane strukturalne → block/NVMeoF
+3. **PowerStore** = Vector DB + dane strukturalne → block/NVMeoF — klient ma istniejący PowerStore z wystarczającą pojemnością
 4. **Longhorn** = dyski VM i local k8s storage → internal Harvester
 5. **SyncIQ** replicates files, **CSM** replicates block storage, **CloudCasa** replicates Kubernetes state
 6. **NVMeoF over TCP** = nowoczesny protokół, wymaga 100GbE → najlepsza wydajność block storage
 7. **HDFS connector** na PowerScale = gotowość na Spark/Hadoop workloady w przyszłości
+8. **⚠️ Harvester + PowerScale CSI = nie wspierane** — trzeba znaleźć workaround (NFS mount?)
